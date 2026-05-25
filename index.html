@@ -822,8 +822,8 @@ function renderPatients(){
     const litBadge=lit?`<div class="lit-badge">🛏 ${lit}</div>`:'';
     const entrée=date_entree?`<div class="pt-meta">Entrée le ${formatDate(date_entree)}</div>`:'';
 
-    html+=`<tr class="prow${isSortieTab?' sorti':''}" onclick="openPatientModal('${ipp}')">
-      <td>
+    html+=`<tr class="prow${isSortieTab?' sorti':''}">
+      <td onclick="openPatientModal('${ipp}','identite')">
         ${litBadge}
         <div class="pt-name">${nom} ${prenom||''}</div>
         <div class="pt-ipp">${ipp}</div>
@@ -831,25 +831,25 @@ function renderPatients(){
         ${entrée}
         ${f.famille?`<div class="cell-text" style="margin-top:5px;font-size:11px;color:var(--gray-400);">${renderMd(f.famille)}</div>`:''}
       </td>
-      <td>
+      <td onclick="openPatientModal('${ipp}','anamnese')">
         ${f.atcd?`<div class="cell-label">ATCD</div><div class="cell-text">${renderMd(f.atcd)}</div>`:''}
         ${f.hdm?`<div class="cell-label">HDM</div><div class="cell-text">${renderMd(f.hdm)}</div>`:''}
         ${!f.atcd&&!f.hdm?`<div class="cell-text empty">—</div>`:''}
       </td>
-      <td>
+      <td onclick="openPatientModal('${ipp}','para')">
         ${f.angioscanner?`<div class="cell-label">Angioscanner</div><div class="cell-text">${renderMd(f.angioscanner)}</div>`:''}
         ${f.irm?`<div class="cell-label">IRM</div><div class="cell-text">${renderMd(f.irm)}</div>`:''}
         ${f.ecg?`<div class="cell-label">ECG</div><div class="cell-text">${renderMd(f.ecg)}</div>`:''}
         ${!f.angioscanner&&!f.irm&&!f.ecg?`<div class="cell-text empty">—</div>`:''}
       </td>
-      <td>
+      <td onclick="openPatientModal('${ipp}','clinique')">
         ${nihssBadge}
         ${f.clinique?`<div class="cell-text" style="margin-top:4px;">${renderMd(f.clinique)}</div>`:''}
         ${f.etiologie?`<div class="cell-label">Étiologie</div><div class="cell-text">${renderMd(f.etiologie)}</div>`:''}
         ${f.traitement?`<div class="cell-label">Traitement</div><div class="cell-text">${renderMd(f.traitement)}</div>`:''}
         ${!f.nihss&&!f.clinique&&!f.etiologie&&!f.traitement?`<div class="cell-text empty">—</div>`:''}
       </td>
-      <td>
+      <td onclick="openPatientModal('${ipp}','devenir')">
         ${isSortieTab
           ? `<span class="sortie-badge">📤 Sorti le ${formatDate(date_sortie)}</span>
              ${f.devenir_notes?`<div class="cell-text" style="margin-top:6px;">${renderMd(f.devenir_notes)}</div>`:''}`
@@ -858,7 +858,7 @@ function renderPatients(){
              ${ts?`<div class="cell-updated">Modifié ${formatTS(ts.ts)} — ${getUserName(ts.mid)}</div>`:''}`
         }
       </td>
-      <td>
+      <td onclick="openPatientModal('${ipp}','nursing')">
         ${isSortieTab
           ? `${date_entree?`<div class="cell-label">Entrée</div><div class="cell-text">${formatDate(date_entree)}</div>`:''}
              ${date_sortie&&date_entree?`<div class="cell-label">Durée</div><div class="cell-text">${nbJours(date_entree,date_sortie)} j</div>`:''}
@@ -889,7 +889,7 @@ function openNewPatientModal(){
   renderPatientForm({});
   document.getElementById('modal-patient').classList.add('open');
 }
-function openPatientModal(ipp){
+function openPatientModal(ipp, section='identite') {
   editingIPP=ipp;
   const pR=db.exec('SELECT ipp,nom,prenom,date_naissance,sexe,unite,lit,date_entree,date_sortie,is_active FROM patients WHERE ipp=?',[ipp]);
   const fdR=db.exec('SELECT field_name,field_value FROM patient_data WHERE ipp=?',[ipp]);
@@ -905,6 +905,13 @@ function openPatientModal(ipp){
   document.getElementById('btn-save-patient').style.display=isActive?'inline-flex':'none';
   renderPatientForm({ipp:p[0],nom:p[1],prenom:p[2],dob:p[3],sexe:p[4],unite:p[5],lit:p[6],date_entree:p[7],date_sortie:p[8],...fields});
   document.getElementById('modal-patient').classList.add('open');
+  if(section){
+    setTimeout(()=>{
+      const target=document.querySelector(
+        `#modal-patient-body .form-section[data-section="${section}"]`);
+      if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    }, 80);
+  }
 }
 
 function renderPatientForm(data){
@@ -912,7 +919,7 @@ function renderPatientForm(data){
   const secFields={};
   FIELDS.forEach(f=>{if(!secFields[f.section])secFields[f.section]=[];secFields[f.section].push(f);});
 
-  let html=`<div class="form-section">
+  let html+=`<div class="form-section" data-section="${sk}">
     <div class="form-section-title">🏷️ Identité & Séjour</div>
     <div class="form-row cols-3">
       <div class="form-group"><label>IPP *</label>
