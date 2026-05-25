@@ -919,7 +919,7 @@ function renderPatientForm(data){
   const secFields={};
   FIELDS.forEach(f=>{if(!secFields[f.section])secFields[f.section]=[];secFields[f.section].push(f);});
 
-  let html+=`<div class="form-section" data-section="${sk}">
+  let html=`<div class="form-section" data-section="identite">
     <div class="form-section-title">🏷️ Identité & Séjour</div>
     <div class="form-row cols-3">
       <div class="form-group"><label>IPP *</label>
@@ -948,7 +948,7 @@ function renderPatientForm(data){
   Object.entries(SECTIONS).forEach(([sk,slabel])=>{
     const flds=secFields[sk]||[];
     const cols=flds.length>1?'1fr 1fr':'1fr';
-    html+=`<div class="form-section"><div class="form-section-title">${slabel}</div>
+    html+=`<div class="form-section" data-section="${sk}"><div class="form-section-title">${slabel}</div>
       <div class="form-row" style="grid-template-columns:${cols}">`;
     flds.forEach(f => {
       // hideInUnits : masquer ce champ dans certaines unités (tableau + fiche)
