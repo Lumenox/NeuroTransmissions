@@ -170,7 +170,15 @@ header{background:var(--navy);color:white;padding:0 20px;height:54px;display:fle
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--gray-800);background:white;transition:border-color .15s;}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,168,.1);}
 .form-group textarea{resize:vertical;min-height:80px;line-height:1.5;}
-
+.md-toolbar{display:flex;gap:4px;margin-bottom:4px;}
+.md-btn{padding:2px 9px;border:1.5px solid var(--gray-200);background:white;
+  border-radius:5px;cursor:pointer;font-size:12px;font-family:var(--font);
+  color:var(--gray-600);transition:all .15s;}
+.md-btn:hover{background:var(--gray-100);border-color:var(--gray-400);}
+.md-btn b{font-weight:700;}
+.md-btn u{text-decoration:underline;}
+.md-btn span{color:#dc2626;font-weight:600;}
+  
 /* AUDIT */
 .audit-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-100);}
 .audit-item:last-child{border-bottom:none;}
@@ -469,7 +477,7 @@ const FIELDS = [
   {name:'clinique',     label:'Examen clinique / déficits',  type:'textarea',section:'clinique'},
   {name:'etiologie',    label:'Étiologie',                   type:'textarea',section:'clinique'},
   {name:'traitement',   label:'Traitement / décisions',      type:'textarea',section:'clinique'},
-  {name:'en_attente',   label:'En attente / À faire',        type:'textarea',section:'devenir'},
+  {name:'en_attente',   label:'En attente / À faire',        type:'textarea',section:'devenir', hideInUnits:['UNV','Autre']},
   {name:'devenir',      label:'Devenir / Transfert',         type:'select',  section:'devenir',
     options:["En cours d'évaluation","Transférable UNV","Non transférable UNV","Retour domicile","SSR","Décédé"]},
   {name:'devenir_notes',label:'Notes devenir',               type:'textarea',section:'devenir'},
@@ -821,31 +829,31 @@ function renderPatients(){
         <div class="pt-ipp">${ipp}</div>
         <div class="pt-meta">${sexe==='F'?'♀':'♂'} ${dob?computeAge(dob)+' ans':''}${unite?' · '+unite:''}</div>
         ${entrée}
-        ${f.famille?`<div class="cell-text" style="margin-top:5px;font-size:11px;color:var(--gray-400);">${esc(f.famille)}</div>`:''}
+        ${f.famille?`<div class="cell-text" style="margin-top:5px;font-size:11px;color:var(--gray-400);">${renderMd(f.famille)}</div>`:''}
       </td>
       <td>
-        ${f.atcd?`<div class="cell-label">ATCD</div><div class="cell-text">${esc(f.atcd)}</div>`:''}
-        ${f.hdm?`<div class="cell-label">HDM</div><div class="cell-text">${esc(f.hdm)}</div>`:''}
+        ${f.atcd?`<div class="cell-label">ATCD</div><div class="cell-text">${renderMd(f.atcd)}</div>`:''}
+        ${f.hdm?`<div class="cell-label">HDM</div><div class="cell-text">${renderMd(f.hdm)}</div>`:''}
         ${!f.atcd&&!f.hdm?`<div class="cell-text empty">—</div>`:''}
       </td>
       <td>
-        ${f.angioscanner?`<div class="cell-label">Angioscanner</div><div class="cell-text">${esc(f.angioscanner)}</div>`:''}
-        ${f.irm?`<div class="cell-label">IRM</div><div class="cell-text">${esc(f.irm)}</div>`:''}
-        ${f.ecg?`<div class="cell-label">ECG</div><div class="cell-text">${esc(f.ecg)}</div>`:''}
+        ${f.angioscanner?`<div class="cell-label">Angioscanner</div><div class="cell-text">${renderMd(f.angioscanner)}</div>`:''}
+        ${f.irm?`<div class="cell-label">IRM</div><div class="cell-text">${renderMd(f.irm)}</div>`:''}
+        ${f.ecg?`<div class="cell-label">ECG</div><div class="cell-text">${renderMd(f.ecg)}</div>`:''}
         ${!f.angioscanner&&!f.irm&&!f.ecg?`<div class="cell-text empty">—</div>`:''}
       </td>
       <td>
         ${nihssBadge}
-        ${f.clinique?`<div class="cell-text" style="margin-top:4px;">${esc(f.clinique)}</div>`:''}
-        ${f.etiologie?`<div class="cell-label">Étiologie</div><div class="cell-text">${esc(f.etiologie)}</div>`:''}
-        ${f.traitement?`<div class="cell-label">Traitement</div><div class="cell-text">${esc(f.traitement)}</div>`:''}
+        ${f.clinique?`<div class="cell-text" style="margin-top:4px;">${renderMd(f.clinique)}</div>`:''}
+        ${f.etiologie?`<div class="cell-label">Étiologie</div><div class="cell-text">${renderMd(f.etiologie)}</div>`:''}
+        ${f.traitement?`<div class="cell-label">Traitement</div><div class="cell-text">${renderMd(f.traitement)}</div>`:''}
         ${!f.nihss&&!f.clinique&&!f.etiologie&&!f.traitement?`<div class="cell-text empty">—</div>`:''}
       </td>
       <td>
         ${isSortieTab
           ? `<span class="sortie-badge">📤 Sorti le ${formatDate(date_sortie)}</span>
-             ${f.devenir_notes?`<div class="cell-text" style="margin-top:6px;">${esc(f.devenir_notes)}</div>`:''}`
-          : `${f.en_attente?`<div class="cell-text" style="margin-bottom:8px;">${esc(f.en_attente)}</div>`:''}
+             ${f.devenir_notes?`<div class="cell-text" style="margin-top:6px;">${renderMd(f.devenir_notes)}</div>`:''}`
+          : `${f.en_attente?`<div class="cell-text" style="margin-bottom:8px;">${renderMd(f.en_attente)}</div>`:''}
              ${dvBadge}
              ${ts?`<div class="cell-updated">Modifié ${formatTS(ts.ts)} — ${getUserName(ts.mid)}</div>`:''}`
         }
@@ -855,11 +863,11 @@ function renderPatients(){
           ? `${date_entree?`<div class="cell-label">Entrée</div><div class="cell-text">${formatDate(date_entree)}</div>`:''}
              ${date_sortie&&date_entree?`<div class="cell-label">Durée</div><div class="cell-text">${nbJours(date_entree,date_sortie)} j</div>`:''}
              <button class="btn btn-success btn-sm" style="margin-top:8px;" onclick="event.stopPropagation();readmitPatient('${ipp}')">↩ Réadmettre</button>`
-          : `${f.lever?`<div class="cell-label">Lever</div><div class="cell-text">${esc(f.lever)}</div>`:''}
-             ${f.alimentation?`<div class="cell-label">Alim.</div><div class="cell-text">${esc(f.alimentation)}</div>`:''}
-             ${f.kine?`<div class="cell-label">Kiné</div><div class="cell-text">${esc(f.kine)}</div>`:''}
-             ${f.ortho?`<div class="cell-label">Ortho</div><div class="cell-text">${esc(f.ortho)}</div>`:''}
-             ${f.nursing_autre?`<div class="cell-label">Autre</div><div class="cell-text">${esc(f.nursing_autre)}</div>`:''}
+          : `${f.lever?`<div class="cell-label">Lever</div><div class="cell-text">${renderMd(f.lever)}</div>`:''}
+             ${f.alimentation?`<div class="cell-label">Alim.</div><div class="cell-text">${renderMd(f.alimentation)}</div>`:''}
+             ${f.kine?`<div class="cell-label">Kiné</div><div class="cell-text">${renderMd(f.kine)}</div>`:''}
+             ${f.ortho?`<div class="cell-label">Ortho</div><div class="cell-text">${renderMd(f.ortho)}</div>`:''}
+             ${f.nursing_autre?`<div class="cell-label">Autre</div><div class="cell-text">${renderMd(f.nursing_autre)}</div>`:''}
              ${!f.lever&&!f.alimentation&&!f.kine&&!f.ortho?`<div class="cell-text empty">—</div>`:''}`
         }
       </td>
@@ -935,13 +943,20 @@ function renderPatientForm(data){
     const cols=flds.length>1?'1fr 1fr':'1fr';
     html+=`<div class="form-section"><div class="form-section-title">${slabel}</div>
       <div class="form-row" style="grid-template-columns:${cols}">`;
-    flds.forEach(f=>{
-      const val=data[f.name]||'';
-      html+=`<div class="form-group"><label>${f.label}</label>`;
-      if(f.type==='textarea')html+=`<textarea id="f-${f.name}" rows="3">${esc(val)}</textarea>`;
-      else if(f.type==='select')html+=`<select id="f-${f.name}">${f.options.map(o=>`<option${val===o?' selected':''}>${o}</option>`).join('')}</select>`;
-      else html+=`<input type="text" id="f-${f.name}" value="${esc(val)}"/>`;
-      html+=`</div>`;
+    flds.forEach(f => {
+      // hideInUnits : masquer ce champ dans certaines unités (tableau + fiche)
+      if(f.hideInUnits && f.hideInUnits.includes(data.unite||'USINV')) return;
+      const val = data[f.name] || '';
+      html += `<div class="form-group"><label>${f.label}</label>`;
+      if(f.type === 'textarea'){
+        html += mdToolbar('f-'+f.name);
+        html += `<textarea id="f-${f.name}" rows="3">${esc(val)}</textarea>`;
+      } else if(f.type === 'select'){
+        html += `<select id="f-${f.name}">${f.options.map(o=>`<option${val===o?' selected':''}>${o}</option>`).join('')}</select>`;
+      } else {
+        html += `<input type="text" id="f-${f.name}" value="${esc(val)}"/>`;
+      }
+      html += `</div>`;
     });
     html+=`</div></div>`;
   });
@@ -1095,6 +1110,35 @@ function removeUser(id){
   if(!confirm(`Supprimer ${id} ?`))return;
   db.run('DELETE FROM users WHERE id_hopital=?',[id]);
   markUnsaved();renderUsersGrid();
+}
+
+// ════════════════════════════════════════
+//  MARKDOWN TOOLBAR
+// ════════════════════════════════════════
+function mdWrap(textareaId, before, after){
+  const el = document.getElementById(textareaId);
+  if(!el) return;
+  const start = el.selectionStart;
+  const end   = el.selectionEnd;
+  const sel   = el.value.substring(start, end) || 'texte';
+  el.value = el.value.substring(0, start)
+           + before + sel + after
+           + el.value.substring(end);
+  // Repositionner le curseur après la balise ouvrante + texte
+  el.selectionStart = start + before.length;
+  el.selectionEnd   = start + before.length + sel.length;
+  el.focus();
+}
+
+function mdToolbar(id){
+  return `<div class="md-toolbar">
+    <button type="button" class="md-btn" onclick="mdWrap('${id}','**','**')"
+      title="Gras"><b>G</b></button>
+    <button type="button" class="md-btn" onclick="mdWrap('${id}','!!','!!')"
+      title="Rouge"><span>R</span></button>
+    <button type="button" class="md-btn" onclick="mdWrap('${id}','__','__')"
+      title="Souligné"><u>S</u></button>
+  </div>`;
 }
 // ════════════════════════════════════════
 //  IMPRESSION
@@ -1349,6 +1393,15 @@ function doPrint(){
 // ════════════════════════════════════════
 //  HELPERS
 // ════════════════════════════════════════
+function renderMd(str){
+  if(!str)return'';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/!!(.+?)!!/g,'<span style="color:#dc2626">$1</span>')
+    .replace(/__(.+?)__/g,'<u>$1</u>')
+    .replace(/\n/g,'<br>');
+}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function showToast(msg,type=false){
   const t=document.getElementById('toast');
