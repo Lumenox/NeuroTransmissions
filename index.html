@@ -383,7 +383,6 @@ header{background:var(--navy);color:white;padding:0 20px;height:54px;display:fle
     </div>
   </div>
 </div>
-<!-- ══════════ MODAL IMPRESSION ══════════ -->
 <div class="overlay" id="modal-print">
   <div class="modal modal-lg">
     <div class="modal-head">
@@ -396,37 +395,48 @@ header{background:var(--navy);color:white;padding:0 20px;height:54px;display:fle
     </div>
     <div class="modal-body">
 
-      <!-- Format -->
       <div class="form-section">
         <div class="form-section-title">📄 Format</div>
-        <div style="display:flex;gap:10px;">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
-            <input type="radio" name="print-format" value="tableau" checked id="fmt-tableau"> Tableau (1 ligne/patient)
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="print-format" value="hybride" checked>
+            <div><strong>Hybride</strong>
+              <div style="font-size:11px;color:var(--gray-400);">Tableau écran — colonnes multi-lignes</div>
+            </div>
           </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
-            <input type="radio" name="print-format" value="fiches" id="fmt-fiches"> Fiches individuelles
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="print-format" value="tableau">
+            <div><strong>Tableau compact</strong>
+              <div style="font-size:11px;color:var(--gray-400);">1 ligne par patient</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;">
+            <input type="radio" name="print-format" value="fiches">
+            <div><strong>Fiches individuelles</strong>
+              <div style="font-size:11px;color:var(--gray-400);">1 fiche par patient</div>
+            </div>
           </label>
         </div>
       </div>
 
-      <!-- Unité -->
       <div class="form-section">
         <div class="form-section-title">🏥 Unité</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="print-units"></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;" id="print-units"></div>
       </div>
 
-      <!-- Champs à inclure -->
       <div class="form-section">
-        <div class="form-section-title">📋 Informations à imprimer</div>
-        <div id="print-fields-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 16px;"></div>
+        <div class="form-section-title">📋 Informations à inclure</div>
+        <div id="print-fields-grid"
+             style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px 16px;"></div>
       </div>
 
-      <!-- Police -->
-      <div class="form-section">
+      <div class="form-section" style="margin-bottom:0;">
         <div class="form-section-title">🔤 Taille de police</div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <input type="range" id="print-fontsize" min="8" max="14" value="10" style="flex:1;">
-          <span id="print-fontsize-label" style="font-family:var(--mono);font-size:12px;min-width:30px;">10px</span>
+          <input type="range" id="print-fontsize" min="7" max="13" value="9"
+                 style="flex:1;accent-color:var(--blue);">
+          <span id="print-fontsize-label"
+                style="font-family:var(--mono);font-size:12px;min-width:34px;">9px</span>
         </div>
       </div>
 
@@ -1089,211 +1099,252 @@ function removeUser(id){
 // ════════════════════════════════════════
 //  IMPRESSION
 // ════════════════════════════════════════
-
-// Champs exclus par défaut à l'impression (modifiables)
-const PRINT_EXCLUDED_DEFAULT = [];
-
-function openPrintModal() {
-  // Remplir les boutons d'unité
-  const unitDiv = document.getElementById('print-units');
-  unitDiv.innerHTML = '';
-  ['Tous','USINV','UNV','USC','Autre'].forEach(u => {
-    const id = 'pu-' + u;
-    const checked = u === activeUnit ? 'checked' : '';
-    unitDiv.innerHTML += `
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;">
-        <input type="radio" name="print-unit" value="${u}" ${checked} id="${id}"> ${u}
-      </label>`;
+function openPrintModal(){
+  // Boutons unité
+  const ud=document.getElementById('print-units');
+  ud.innerHTML='';
+  ['Tous','USINV','UNV','USC','Autre'].forEach(u=>{
+    const chk=u===activeUnit?'checked':'';
+    ud.innerHTML+=`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;">
+      <input type="radio" name="print-unit" value="${u}" ${chk}> ${u}</label>`;
   });
-
-  // Remplir la grille des champs
-  const grid = document.getElementById('print-fields-grid');
-  grid.innerHTML = '';
-  FIELDS.forEach(f => {
-    const checked = !PRINT_EXCLUDED_DEFAULT.includes(f.name) ? 'checked' : '';
-    grid.innerHTML += `
-      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;">
-        <input type="checkbox" id="pf-${f.name}" ${checked}>
-        ${f.label}
-      </label>`;
+  // Cases à cocher des champs
+  const grid=document.getElementById('print-fields-grid');
+  grid.innerHTML='';
+  FIELDS.forEach(f=>{
+    grid.innerHTML+=`<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;padding:2px 0;">
+      <input type="checkbox" id="pf-${f.name}" checked> ${f.label}</label>`;
   });
-
   // Slider police
-  const slider = document.getElementById('print-fontsize');
-  slider.oninput = () => {
-    document.getElementById('print-fontsize-label').textContent = slider.value + 'px';
+  const sl=document.getElementById('print-fontsize');
+  document.getElementById('print-fontsize-label').textContent=sl.value+'px';
+  sl.oninput=()=>{
+    document.getElementById('print-fontsize-label').textContent=sl.value+'px';
   };
-
   document.getElementById('modal-print').classList.add('open');
 }
 
-function getPrintOptions() {
-  const format   = document.querySelector('input[name="print-format"]:checked').value;
-  const unit     = document.querySelector('input[name="print-unit"]:checked').value;
-  const fontSize = document.getElementById('print-fontsize').value;
-  const fields   = FIELDS.filter(f => document.getElementById('pf-' + f.name)?.checked);
-  return { format, unit, fontSize, fields };
-}
-
-function doPrint() {
-  const opts = getPrintOptions();
-
-  // Récupérer les patients
-  let where = 'p.is_active=1', params = [];
-  if (opts.unit !== 'Tous') { where += ' AND p.unite=?'; params.push(opts.unit); }
-  const pR = db.exec(
-    `SELECT p.ipp,p.nom,p.prenom,p.date_naissance,p.sexe,p.unite,p.lit,p.date_entree
-     FROM patients p WHERE ${where} ORDER BY p.lit,p.nom`, params);
-  if (!pR.length || !pR[0].values.length) { showToast('Aucun patient à imprimer', true); return; }
-  const pts = pR[0].values;
-
-  // Récupérer les données champs
-  const ipps = pts.map(p => `'${p[0]}'`).join(',');
-  const fdR  = db.exec(`SELECT ipp,field_name,field_value FROM patient_data WHERE ipp IN (${ipps})`);
-  const fmap = {};
-  if (fdR.length) fdR[0].values.forEach(([i,k,v]) => { if(!fmap[i])fmap[i]={}; fmap[i][k]=v; });
-
-  let body = '';
-
-  if (opts.format === 'tableau') {
-    // ── Format tableau ──────────────────────────────
-    let headerCells = `<th>Patient</th><th>Lit</th><th>Entrée</th>`;
-    opts.fields.forEach(f => { headerCells += `<th>${f.label}</th>`; });
-
-    let rows = '';
-    pts.forEach(([ipp,nom,prenom,dob,sexe,unite,lit,date_entree]) => {
-      const f = fmap[ipp] || {};
-      const age = dob ? computeAge(dob)+'a' : '';
-      let cells = `
-        <td><strong>${nom} ${prenom||''}</strong><br><small>${age} ${sexe}</small></td>
-        <td>${lit||'—'}</td>
-        <td>${date_entree ? formatDate(date_entree) : '—'}</td>`;
-      opts.fields.forEach(field => {
-        cells += `<td>${f[field.name] ? escPrint(f[field.name]) : ''}</td>`;
-      });
-      rows += `<tr>${cells}</tr>`;
-    });
-
-    body = `
-      <table>
-        <thead><tr>${headerCells}</tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-
-  } else {
-    // ── Format fiches ────────────────────────────────
-    pts.forEach(([ipp,nom,prenom,dob,sexe,unite,lit,date_entree]) => {
-      const f = fmap[ipp] || {};
-      const age = dob ? computeAge(dob)+' ans' : '';
-
-      let fieldsHtml = '';
-      // Grouper par section pour les fiches
-      const sections = {};
-      opts.fields.forEach(field => {
-        if (!sections[field.section]) sections[field.section] = [];
-        sections[field.section].push(field);
-      });
-
-      Object.entries(SECTIONS).forEach(([sk, slabel]) => {
-        if (!sections[sk]) return;
-        fieldsHtml += `<div class="section-title">${slabel}</div><div class="fields-row">`;
-        sections[sk].forEach(field => {
-          const val = f[field.name] || '';
-          fieldsHtml += `
-            <div class="field-block">
-              <div class="field-label">${field.label}</div>
-              <div class="field-value">${val ? escPrint(val) : '&nbsp;'}</div>
-            </div>`;
-        });
-        fieldsHtml += `</div>`;
-      });
-
-      body += `
-        <div class="fiche">
-          <div class="fiche-header">
-            <div class="fiche-name">${nom} ${prenom||''}</div>
-            <div class="fiche-meta">
-              <span>IPP : ${ipp}</span>
-              <span>${age} · ${sexe==='F'?'F':'M'}</span>
-              <span>Unité : ${unite}${lit?' · Lit '+lit:''}</span>
-              ${date_entree?`<span>Entrée : ${formatDate(date_entree)}</span>`:''}
-            </div>
-          </div>
-          ${fieldsHtml}
-        </div>`;
-    });
-  }
-
-  // Construire la fenêtre d'impression
-  const date = new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const unitLabel = opts.unit === 'Tous' ? 'Toutes unités' : opts.unit;
-  const fs = opts.fontSize + 'px';
-
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="fr"><head>
-    <meta charset="UTF-8">
-    <title>Transmissions ${unitLabel} — ${date}</title>
-    <style>
-      * { box-sizing:border-box; margin:0; padding:0; }
-      body { font-family: Arial, sans-serif; font-size:${fs}; color:#000; }
-
-      /* ── En-tête ── */
-      .print-header { display:flex; justify-content:space-between; align-items:baseline;
-        border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px; }
-      .print-title  { font-size:1.3em; font-weight:bold; }
-      .print-date   { font-size:0.9em; color:#444; }
-      .print-unit   { font-size:0.95em; font-weight:600; background:#eee;
-        padding:2px 8px; border-radius:4px; }
-
-      /* ── Tableau ── */
-      table { width:100%; border-collapse:collapse; margin-top:4px; }
-      th    { background:#1e293b; color:white; padding:4px 6px; text-align:left;
-              font-size:0.85em; font-weight:600; white-space:nowrap; }
-      td    { padding:3px 6px; border-bottom:1px solid #ddd; vertical-align:top;
-              max-width:180px; word-wrap:break-word; }
-      tr:nth-child(even) td { background:#f8f8f8; }
-
-      /* ── Fiches ── */
-      .fiche          { border:1px solid #aaa; border-radius:4px; padding:8px;
-                        margin-bottom:10px; page-break-inside:avoid; }
-      .fiche-header   { display:flex; justify-content:space-between; align-items:baseline;
-                        border-bottom:1px solid #ccc; padding-bottom:5px; margin-bottom:6px; }
-      .fiche-name     { font-size:1.15em; font-weight:bold; }
-      .fiche-meta     { display:flex; gap:12px; font-size:0.85em; color:#555; }
-      .section-title  { font-size:0.75em; font-weight:700; text-transform:uppercase;
-                        letter-spacing:.8px; color:#2563a8; border-bottom:1px solid #dbeafe;
-                        padding-bottom:2px; margin:6px 0 4px; }
-      .fields-row     { display:flex; flex-wrap:wrap; gap:6px; }
-      .field-block    { flex:1; min-width:140px; }
-      .field-label    { font-size:0.75em; font-weight:700; text-transform:uppercase;
-                        color:#666; margin-bottom:1px; }
-      .field-value    { font-size:0.9em; white-space:pre-wrap; min-height:16px;
-                        border-bottom:1px dotted #ccc; padding-bottom:2px; }
-
-      @media print {
-        body { font-size:${fs}; }
-        @page { margin:12mm; size: A4 landscape; }
-        .no-print { display:none; }
-      }
-    </style>
-  </head><body>
-    <div class="print-header">
-      <div class="print-title">🧠 Transmissions Neurologie</div>
-      <div class="print-unit">${unitLabel}</div>
-      <div class="print-date">${date}</div>
-    </div>
-    ${body}
-    <script>window.onload=()=>{window.print();}<\/script>
-  </body></html>`);
-  win.document.close();
-  closeModal('modal-print');
-}
-
-function escPrint(str) {
-  if (!str) return '';
+function escP(str){
+  if(!str)return'';
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\n/g,'<br>');
+}
+
+function doPrint(){
+  // ── Lecture des options ──────────────────────────────────────
+  const format   = document.querySelector('input[name="print-format"]:checked').value;
+  const unit     = document.querySelector('input[name="print-unit"]:checked').value;
+  const fontSize = document.getElementById('print-fontsize').value+'px';
+  const fields   = FIELDS.filter(f=>document.getElementById('pf-'+f.name)?.checked);
+
+  // ── Récupération des patients ────────────────────────────────
+  let where='p.is_active=1', params=[];
+  if(unit!=='Tous'){where+=' AND p.unite=?';params.push(unit);}
+  const pR=db.exec(
+    `SELECT p.ipp,p.nom,p.prenom,p.date_naissance,p.sexe,p.unite,p.lit,p.date_entree
+     FROM patients p WHERE ${where}
+     ORDER BY CASE WHEN p.lit IS NULL OR p.lit='' THEN 1 ELSE 0 END,
+     CAST(p.lit AS INTEGER),p.lit,p.nom`, params);
+  if(!pR.length||!pR[0].values.length){showToast('Aucun patient',true);return;}
+  const pts=pR[0].values;
+
+  // ── Récupération des données champs ─────────────────────────
+  const ipps=pts.map(p=>`'${p[0]}'`).join(',');
+  const fdR=db.exec(
+    `SELECT ipp,field_name,field_value FROM patient_data WHERE ipp IN (${ipps})`);
+  const fmap={};
+  if(fdR.length)fdR[0].values.forEach(([i,k,v])=>{if(!fmap[i])fmap[i]={};fmap[i][k]=v;});
+
+  // ── Index champs par section ─────────────────────────────────
+  const secFields={};
+  fields.forEach(f=>{
+    if(!secFields[f.section])secFields[f.section]=[];
+    secFields[f.section].push(f);
+  });
+
+  // ── Construction du contenu selon format ────────────────────
+  let body='';
+
+  if(format==='hybride'){
+    // Colonnes = sections ayant au moins un champ coché
+    const secOrder=['identite','anamnese','para','clinique','devenir','nursing'];
+    const secLabels={
+      identite:'Identité / Social', anamnese:'ATCD / HDM',
+      para:'Paraclinique',          clinique:'Clinique / Étio / Ttt',
+      devenir:'En attente / Devenir',nursing:'Nursing / Kiné'
+    };
+    const activeSecs=secOrder.filter(s=>secFields[s]&&secFields[s].length>0);
+
+    let thead='<th class="col-id">Patient</th>';
+    activeSecs.forEach(s=>{thead+=`<th>${secLabels[s]}</th>`;});
+
+    let rows='';
+    pts.forEach(([ipp,nom,prenom,dob,sexe,unite,lit,date_entree])=>{
+      const f=fmap[ipp]||{};
+      const age=dob?computeAge(dob)+' a':'';
+      const idCell=`<td class="col-id">
+        <div class="pt-name">${nom} ${prenom||''}</div>
+        ${lit?`<div class="pt-badge">🛏 ${lit}</div>`:''}
+        <div class="pt-meta">${sexe==='F'?'F':'M'} ${age}${unite?' · '+unite:''}</div>
+        ${date_entree?`<div class="pt-meta">Entrée ${formatDate(date_entree)}</div>`:''}
+        ${f.famille?`<div class="field-inline">${escP(f.famille)}</div>`:''}
+      </td>`;
+      let dataCells='';
+      activeSecs.forEach(s=>{
+        const sFields=secFields[s]||[];
+        let inner='';
+        sFields.forEach(field=>{
+          const val=f[field.name];
+          if(!val)return;
+          if(field.name==='nihss'){
+            inner+=`<div class="nihss-badge">NIHSS ${escP(val)}</div>`;
+          } else if(field.name==='devenir'){
+            const cls=val.includes('Non')?'dv-non':val.includes('Transf')?'dv-oui':'dv-enc';
+            inner+=`<div class="dv-badge ${cls}">${escP(val)}</div>`;
+          } else {
+            inner+=`<div class="cell-label">${field.label}</div>
+                    <div class="cell-val">${escP(val)}</div>`;
+          }
+        });
+        dataCells+=`<td>${inner||'<span class="empty">—</span>'}</td>`;
+      });
+      rows+=`<tr>${idCell}${dataCells}</tr>`;
+    });
+    body=`<table class="htable">
+      <thead><tr>${thead}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  else if(format==='tableau'){
+    let thead='<th>Patient</th><th>Lit</th><th>Entrée</th>';
+    fields.forEach(f=>{thead+=`<th>${f.label}</th>`;});
+    let rows='';
+    pts.forEach(([ipp,nom,prenom,dob,sexe,unite,lit,date_entree])=>{
+      const f=fmap[ipp]||{};
+      const age=dob?computeAge(dob)+'a':'';
+      let cells=`<td><strong>${nom} ${prenom||''}</strong><br><small>${age} ${sexe}</small></td>
+        <td>${lit||'—'}</td><td>${date_entree?formatDate(date_entree):'—'}</td>`;
+      fields.forEach(field=>{cells+=`<td>${f[field.name]?escP(f[field.name]):''}</td>`;});
+      rows+=`<tr>${cells}</tr>`;
+    });
+    body=`<table class="ctable">
+      <thead><tr>${thead}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  else { // fiches
+    pts.forEach(([ipp,nom,prenom,dob,sexe,unite,lit,date_entree])=>{
+      const f=fmap[ipp]||{};
+      const age=dob?computeAge(dob)+' ans':'';
+      let fieldsHtml='';
+      Object.entries(SECTIONS).forEach(([sk,slabel])=>{
+        if(!secFields[sk])return;
+        fieldsHtml+=`<div class="sec-title">${slabel}</div><div class="fields-row">`;
+        secFields[sk].forEach(field=>{
+          fieldsHtml+=`<div class="field-block">
+            <div class="field-label">${field.label}</div>
+            <div class="field-val">${f[field.name]?escP(f[field.name]):'&nbsp;'}</div>
+          </div>`;
+        });
+        fieldsHtml+=`</div>`;
+      });
+      body+=`<div class="fiche">
+        <div class="fiche-head">
+          <div class="fiche-name">${nom} ${prenom||''}</div>
+          <div class="fiche-meta">
+            <span>IPP : ${ipp}</span>
+            <span>${age} · ${sexe==='F'?'F':'M'}</span>
+            <span>${unite}${lit?' · Lit '+lit:''}</span>
+            ${date_entree?`<span>Entrée : ${formatDate(date_entree)}</span>`:''}
+          </div>
+        </div>
+        ${fieldsHtml}
+      </div>`;
+    });
+  }
+
+  // ── Ouverture fenêtre impression ─────────────────────────────
+  const dateStr=new Date().toLocaleDateString('fr-FR',
+    {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const unitLabel=unit==='Tous'?'Toutes unités':unit;
+
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="fr"><head>
+  <meta charset="UTF-8">
+  <title>Transmissions ${unitLabel} — ${dateStr}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:${fontSize};color:#000;}
+    .page-head{display:flex;justify-content:space-between;align-items:center;
+      border-bottom:2px solid #0d1f3c;padding-bottom:5px;margin-bottom:8px;}
+    .page-title{font-size:1.2em;font-weight:bold;color:#0d1f3c;}
+    .page-unit{background:#0d1f3c;color:white;padding:2px 10px;
+      border-radius:4px;font-size:.9em;font-weight:600;}
+    .page-date{font-size:.85em;color:#555;}
+    /* hybride */
+    .htable{width:100%;border-collapse:collapse;table-layout:fixed;}
+    .htable thead tr{background:#0d1f3c;}
+    .htable th{color:white;padding:4px 6px;text-align:left;font-size:.8em;
+      font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+    .htable td{padding:5px 6px;border-bottom:1px solid #e2e8f0;
+      border-left:1px solid #f1f5f9;vertical-align:top;word-wrap:break-word;}
+    .htable td:first-child{border-left:3px solid #2563a8;width:11%;}
+    .htable tr:nth-child(even) td{background:#f8fafc;}
+    .pt-name{font-weight:700;font-size:1.05em;color:#0d1f3c;}
+    .pt-badge{font-size:.85em;color:#2563a8;font-weight:600;margin-top:1px;}
+    .pt-meta{font-size:.8em;color:#64748b;margin-top:1px;}
+    .field-inline{font-size:.8em;color:#64748b;margin-top:3px;font-style:italic;}
+    .cell-label{font-size:.72em;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;color:#94a3b8;margin-top:5px;margin-bottom:1px;}
+    .cell-label:first-child{margin-top:0;}
+    .cell-val{font-size:.9em;line-height:1.4;}
+    .nihss-badge{display:inline-block;background:#fef3c7;color:#d97706;
+      padding:1px 7px;border-radius:10px;font-weight:700;margin-bottom:3px;}
+    .dv-badge{display:inline-block;padding:2px 8px;border-radius:10px;
+      font-size:.85em;font-weight:700;margin-top:2px;}
+    .dv-oui{background:#d1fae5;color:#059669;}
+    .dv-non{background:#fee2e2;color:#dc2626;}
+    .dv-enc{background:#fef3c7;color:#d97706;}
+    .empty{color:#cbd5e1;font-style:italic;}
+    /* tableau compact */
+    .ctable{width:100%;border-collapse:collapse;}
+    .ctable th{background:#0d1f3c;color:white;padding:3px 6px;
+      text-align:left;font-size:.8em;white-space:nowrap;}
+    .ctable td{padding:3px 6px;border-bottom:1px solid #ddd;
+      vertical-align:top;word-wrap:break-word;}
+    .ctable tr:nth-child(even) td{background:#f8f8f8;}
+    /* fiches */
+    .fiche{border:1px solid #aaa;border-radius:4px;padding:8px;
+      margin-bottom:10px;page-break-inside:avoid;}
+    .fiche-head{display:flex;justify-content:space-between;align-items:baseline;
+      border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:6px;}
+    .fiche-name{font-size:1.1em;font-weight:bold;}
+    .fiche-meta{display:flex;gap:12px;font-size:.82em;color:#555;}
+    .sec-title{font-size:.72em;font-weight:700;text-transform:uppercase;
+      letter-spacing:.8px;color:#2563a8;border-bottom:1px solid #dbeafe;
+      padding-bottom:2px;margin:6px 0 3px;}
+    .fields-row{display:flex;flex-wrap:wrap;gap:6px;}
+    .field-block{flex:1;min-width:130px;}
+    .field-label{font-size:.72em;font-weight:700;text-transform:uppercase;
+      color:#666;margin-bottom:1px;}
+    .field-val{font-size:.9em;white-space:pre-wrap;min-height:14px;
+      border-bottom:1px dotted #ccc;padding-bottom:2px;}
+    @page{margin:10mm;size:A4 landscape;}
+  </style>
+  </head><body>
+  <div class="page-head">
+    <div class="page-title">🧠 Transmissions Neurologie</div>
+    <div class="page-unit">${unitLabel}</div>
+    <div class="page-date">${dateStr}</div>
+  </div>
+  ${body}
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+  closeModal('modal-print');
 }
 // ════════════════════════════════════════
 //  HELPERS
